@@ -75,21 +75,39 @@ brfss %>%
 
 ``` r
 brfss %>%
-  filter(year %in% c("2002", "2006", "2010")) %>% # Only need these years
-  filter(str_detect(state, "NY")) %>%  # Only need NY
-  spread(key = response, value = data_value) %>% # spread and mutate to create new col containing the proportion of excellent responses
-  janitor::clean_names() %>% 
-  mutate(proportion_excellent = (excellent)/(fair + good + poor + excellent + very_good)) %>%
+  filter(year %in% c("2002", "2006", "2010"), # filter years, state, and excellent responses
+         str_detect(state, "NY"),
+         response == "excellent",
+         !is.na(data_value)) %>% 
   group_by(year) %>% 
-  filter(!is.na(proportion_excellent)) %>%
-  summarize(mean = mean(proportion_excellent), std_dev = sd(proportion_excellent)) %>% 
+  summarize(mean = mean(data_value), std_dev = sd(data_value)) %>% 
   knitr::kable(digits = 4)
 ```
 
-|  year|    mean|  std\_dev|
-|-----:|-------:|---------:|
-|  2002|  0.2405|    0.0450|
-|  2006|  0.2253|    0.0400|
-|  2010|  0.2270|    0.0356|
+|  year|     mean|  std\_dev|
+|-----:|--------:|---------:|
+|  2002|  24.0400|    4.4864|
+|  2006|  22.5333|    4.0008|
+|  2010|  22.7000|    3.5672|
 
 *For each year and state, compute the average proportion in each response category (taking the average across locations in a state). Make a five-panel plot that shows, for each response category separately, the distribution of these state-level averages over time.*
+
+``` r
+brfss %>%
+  group_by(year, state, response) %>%
+  filter(!is.na(data_value)) %>% 
+  summarize(mean = mean(data_value)) %>% 
+  ggplot(aes(x = year, y = mean, color = response)) +
+  geom_point() +
+  facet_grid(~response) +
+  labs(
+    title = "Proportion of each response",
+    x = "Mean proportion",
+    y = "Year"
+  ) + 
+  theme_bw() +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+![](homework_3_files/figure-markdown_github/unnamed-chunk-4-1.png)
