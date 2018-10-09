@@ -4,6 +4,8 @@ Brennan Baker
 October 9, 2018
 
 -   [Problem 1](#problem-1)
+-   [Problem 2](#problem-2)
+-   [Problem 3](#problem-3)
 
 Problem 1
 =========
@@ -111,3 +113,107 @@ brfss %>%
 ```
 
 ![](homework_3_files/figure-markdown_github/unnamed-chunk-4-1.png)
+
+Problem 2
+=========
+
+*Load data*
+
+Instacart is an online grocery shopping service.
+
+*How many aisles are there, and which aisles are the most items ordered from?*
+
+``` r
+instacart %>% distinct(aisle, .keep_all = TRUE) %>% nrow()
+```
+
+    ## [1] 134
+
+There are 134 distinct aisles.
+
+The table below shows the top 5 aisles that contain the most ordered items.
+
+``` r
+instacart %>% distinct(aisle, product_name, .keep_all = TRUE) %>%
+  count(aisle) %>% 
+  arrange(desc(n)) %>% 
+  top_n(5) %>% 
+  knitr::kable()
+```
+
+    ## Selecting by n
+
+| aisle           |    n|
+|:----------------|----:|
+| candy chocolate |  943|
+| yogurt          |  911|
+| missing         |  905|
+| ice cream ice   |  901|
+| chips pretzels  |  844|
+
+*Make a plot that shows the number of items ordered in each aisle. Order aisles sensibly, and organize your plot so others can read it.*
+
+``` r
+instacart %>% distinct(aisle, product_name, .keep_all = TRUE) %>%
+  group_by(aisle, department) %>% 
+  summarise(number_items = n()) %>% 
+  ggplot(aes(x =number_items, fill = department)) +
+  geom_density()
+```
+
+    ## Warning: Groups with fewer than two data points have been dropped.
+
+    ## Warning: Groups with fewer than two data points have been dropped.
+
+![](homework_3_files/figure-markdown_github/unnamed-chunk-7-1.png)
+
+*Make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”*
+
+``` r
+instacart %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
+  group_by(aisle, product_name) %>%
+  summarize(number = n()) %>% 
+  arrange(desc(number)) %>% 
+  top_n(5) %>% 
+  knitr::kable()
+```
+
+    ## Selecting by number
+
+| aisle                      | product\_name                                   |  number|
+|:---------------------------|:------------------------------------------------|-------:|
+| packaged vegetables fruits | Organic Baby Spinach                            |    9784|
+| packaged vegetables fruits | Organic Raspberries                             |    5546|
+| packaged vegetables fruits | Organic Blueberries                             |    4966|
+| packaged vegetables fruits | Seedless Red Grapes                             |    4059|
+| packaged vegetables fruits | Organic Grape Tomatoes                          |    3823|
+| baking ingredients         | Light Brown Sugar                               |     499|
+| baking ingredients         | Pure Baking Soda                                |     387|
+| baking ingredients         | Cane Sugar                                      |     336|
+| baking ingredients         | Premium Pure Cane Granulated Sugar              |     329|
+| baking ingredients         | Organic Vanilla Extract                         |     327|
+| dog food care              | Snack Sticks Chicken & Rice Recipe Dog Treats   |      30|
+| dog food care              | Organix Chicken & Brown Rice Recipe             |      28|
+| dog food care              | Small Dog Biscuits                              |      26|
+| dog food care              | Standard Size Pet Waste bags                    |      25|
+| dog food care              | Organix Grain Free Chicken & Vegetable Dog Food |      24|
+
+*Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).*
+
+``` r
+instacart %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%
+  group_by(product_name, order_dow) %>% 
+  summarize(mean_hour = mean(order_hour_of_day)) %>% 
+  spread(key = order_dow, value = mean_hour) %>% 
+  knitr::kable()
+```
+
+| product\_name    |         0|         1|         2|         3|         4|         5|         6|
+|:-----------------|---------:|---------:|---------:|---------:|---------:|---------:|---------:|
+| Coffee Ice Cream |  13.77419|  14.31579|  15.38095|  15.31818|  15.21739|  12.26316|  13.83333|
+| Pink Lady Apples |  13.44118|  11.36000|  11.70213|  14.25000|  11.55172|  12.78431|  11.93750|
+
+Problem 3
+=========
