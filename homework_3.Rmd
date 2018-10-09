@@ -1,0 +1,12 @@
+---
+title: "Homework_3"
+author: "Brennan Baker"
+date: "October 9, 2018"
+output:
+  github_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
