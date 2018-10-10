@@ -71,7 +71,7 @@ brfss %>%
   theme_bw()
 ```
 
-![](homework_3_files/figure-markdown_github/unnamed-chunk-2-1.png)
+![](homework_3_files/figure-markdown_github/spaghetti%20plot-1.png)
 
 *Make a table showing, for the years 2002, 2006, and 2010, the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State.*
 
@@ -112,7 +112,7 @@ brfss %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
-![](homework_3_files/figure-markdown_github/unnamed-chunk-4-1.png)
+![](homework_3_files/figure-markdown_github/five%20panel%20plot-1.png)
 
 Problem 2
 =========
@@ -165,7 +165,24 @@ instacart %>% distinct(aisle, product_name, .keep_all = TRUE) %>%
 
     ## Warning: Groups with fewer than two data points have been dropped.
 
-![](homework_3_files/figure-markdown_github/unnamed-chunk-7-1.png)
+![](homework_3_files/figure-markdown_github/unnamed-chunk-1-1.png)
+
+``` r
+instacart %>% distinct(aisle, product_name, .keep_all = TRUE) %>%
+  group_by(aisle, department) %>% 
+  summarise(number_items = n()) %>%
+  ggplot(aes(x = department, y = number_items)) +
+  geom_boxplot() +
+   labs(
+    title = "number of items ordered in each aisle by department",
+    x = "department",
+    y = "number of items"
+  ) + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+![](homework_3_files/figure-markdown_github/items%20ordered%20in%20each%20aisle%20plot-1.png)
 
 *Make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”*
 
@@ -175,29 +192,17 @@ instacart %>%
   group_by(aisle, product_name) %>%
   summarize(number = n()) %>% 
   arrange(desc(number)) %>% 
-  top_n(5) %>% 
+  top_n(1) %>% 
   knitr::kable()
 ```
 
     ## Selecting by number
 
-| aisle                      | product\_name                                   |  number|
-|:---------------------------|:------------------------------------------------|-------:|
-| packaged vegetables fruits | Organic Baby Spinach                            |    9784|
-| packaged vegetables fruits | Organic Raspberries                             |    5546|
-| packaged vegetables fruits | Organic Blueberries                             |    4966|
-| packaged vegetables fruits | Seedless Red Grapes                             |    4059|
-| packaged vegetables fruits | Organic Grape Tomatoes                          |    3823|
-| baking ingredients         | Light Brown Sugar                               |     499|
-| baking ingredients         | Pure Baking Soda                                |     387|
-| baking ingredients         | Cane Sugar                                      |     336|
-| baking ingredients         | Premium Pure Cane Granulated Sugar              |     329|
-| baking ingredients         | Organic Vanilla Extract                         |     327|
-| dog food care              | Snack Sticks Chicken & Rice Recipe Dog Treats   |      30|
-| dog food care              | Organix Chicken & Brown Rice Recipe             |      28|
-| dog food care              | Small Dog Biscuits                              |      26|
-| dog food care              | Standard Size Pet Waste bags                    |      25|
-| dog food care              | Organix Grain Free Chicken & Vegetable Dog Food |      24|
+| aisle                      | product\_name                                 |  number|
+|:---------------------------|:----------------------------------------------|-------:|
+| packaged vegetables fruits | Organic Baby Spinach                          |    9784|
+| baking ingredients         | Light Brown Sugar                             |     499|
+| dog food care              | Snack Sticks Chicken & Rice Recipe Dog Treats |      30|
 
 *Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).* tried this code in the below chunck it didnt work mutate(order\_dow = recode(order\_dow, 0 = "Sunday", 1 = "Monday", 2 = "Tuesday", 3 = "Wednesday", 4 = "Thursday", 5 = "Friday", 6 = "Saturday"))
 
@@ -217,3 +222,86 @@ instacart %>%
 
 Problem 3
 =========
+
+*description of dataset*
+
+The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and indicating the extent to which missing data is an issue. Then, do or answer the following (commenting on the results of each):
+
+*Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?*
+
+First I need to load this package for working with dates.
+
+``` r
+library(lubridate) # need this package below for separating the date into multiple columns
+```
+
+    ## 
+    ## Attaching package: 'lubridate'
+
+    ## The following object is masked from 'package:base':
+    ## 
+    ##     date
+
+This code tidys the data by making new columns for year, month, and day, and converting any variable expressed in tenths of a unit to whole units.
+
+``` r
+noaa_data = ny_noaa %>%
+  mutate_at(vars(date), funs(year, month, day)) %>% # need the lubridate package for this line
+  mutate(prcp = prcp/10, tmax = as.numeric(tmax)/10, tmin = as.numeric(tmin)/10) # convert from tenths of mm and tench of degrees to whole units
+```
+
+For snowfall, what are the most commonly observed values? Why?
+
+``` r
+noaa_data %>% 
+  count(snow) %>% 
+  arrange(desc(n))
+```
+
+    ## # A tibble: 282 x 2
+    ##     snow       n
+    ##    <int>   <int>
+    ##  1     0 2008508
+    ##  2    NA  381221
+    ##  3    25   31022
+    ##  4    13   23095
+    ##  5    51   18274
+    ##  6    76   10173
+    ##  7     8    9962
+    ##  8     5    9748
+    ##  9    38    9197
+    ## 10     3    8790
+    ## # ... with 272 more rows
+
+The most commonly observed value is 0 because on most days it does not snow.
+
+*Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?*
+
+this wont work mutate(month = recode(month, 1 = "January", 7 = "July")) %&gt;%
+
+``` r
+noaa_data %>% 
+  filter(month %in% c(1, 7)) %>% # keeps only data for months of Jan and July
+  group_by(id) %>% 
+  filter(!is.na(tmax)) %>% 
+  ggplot(aes(x = year, y = tmax, color = id)) +
+  geom_line() +
+  facet_grid(~month) +
+  theme(legend.position = "none")
+```
+
+![](homework_3_files/figure-markdown_github/unnamed-chunk-3-1.png)
+
+``` r
+noaa_data %>% 
+  filter(month %in% c(1, 7)) %>% # keeps only data for months of Jan and July
+  group_by(id) %>% 
+  filter(!is.na(tmax)) %>% 
+  ggplot(aes(x = year, y = tmax, color = id)) +
+  geom_line() +
+  theme(legend.position = "none")
+```
+
+![](homework_3_files/figure-markdown_github/unnamed-chunk-4-1.png)
+
+*Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.*

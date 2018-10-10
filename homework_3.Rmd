@@ -154,7 +154,7 @@ instacart %>%
   group_by(aisle, product_name) %>%
   summarize(number = n()) %>% 
   arrange(desc(number)) %>% 
-  top_n(5) %>% 
+  top_n(1) %>% 
   knitr::kable()
 ```
 
@@ -203,17 +203,31 @@ The most commonly observed value is 0 because on most days it does not snow.
 
 *Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?*
 
+this wont work
+mutate(month = recode(month, 1 = "January", 7 = "July")) %>% 
 ```{r}
 noaa_data %>% 
   filter(month %in% c(1, 7)) %>% # keeps only data for months of Jan and July
   group_by(id) %>% 
   filter(!is.na(tmax)) %>% 
   ggplot(aes(x = year, y = tmax, color = id)) +
-  geom_point() +
+  geom_line() +
+  facet_grid(~month) +
   theme(legend.position = "none")
   
 ```
 
+
+```{r}
+noaa_data %>% 
+  filter(month %in% c(1, 7)) %>% # keeps only data for months of Jan and July
+  group_by(id) %>% 
+  filter(!is.na(tmax)) %>% 
+  ggplot(aes(x = year, y = tmax, color = id)) +
+  geom_line() +
+  theme(legend.position = "none")
+  
+```
 
 *Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.*
 
