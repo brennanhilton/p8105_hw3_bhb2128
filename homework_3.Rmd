@@ -39,7 +39,7 @@ I cleaned the data by: cleaning the names; keeping only the rows where the topic
 
 *In 2002, which states were observed at 7 locations?*
 
-```{r}
+```{r states with 7 locations}
 brfss %>% 
   filter(year == "2002") %>% 
   distinct(state, county, .keep_all = TRUE) %>% 
@@ -52,7 +52,7 @@ There were 3 states observed at 7 locations.
 
 *Make a “spaghetti plot” that shows the number of locations in each state from 2002 to 2010*
 
-```{r}
+```{r spaghetti plot}
 brfss %>%
   group_by(year) %>% 
   count(state) %>% 
@@ -64,7 +64,7 @@ brfss %>%
 *Make a table showing, for the years 2002, 2006, and 2010, the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State.*
 
 
-```{r}
+```{r proportion of excellent table}
 brfss %>%
   filter(year %in% c("2002", "2006", "2010"), # filter years, state, and excellent responses
          str_detect(state, "NY"),
@@ -78,7 +78,7 @@ brfss %>%
 
 *For each year and state, compute the average proportion in each response category (taking the average across locations in a state). Make a five-panel plot that shows, for each response category separately, the distribution of these state-level averages over time.*
 
-```{r}
+```{r five panel plot}
 brfss %>%
   group_by(year, state, response) %>%
   filter(!is.na(data_value)) %>% 
@@ -104,7 +104,7 @@ brfss %>%
 Instacart is an online grocery shopping service. 
 
 *How many aisles are there, and which aisles are the most items ordered from?*
-```{r}
+```{r number of aisles}
 instacart %>% distinct(aisle, .keep_all = TRUE) %>% nrow()
 ```
 
@@ -112,7 +112,7 @@ There are 134 distinct aisles.
 
 The table below shows the top 5 aisles that contain the most ordered items. 
 
-```{r}
+```{r aisles with most items ordered}
 instacart %>% distinct(aisle, product_name, .keep_all = TRUE) %>%
   count(aisle) %>% 
   arrange(desc(n)) %>% 
@@ -131,9 +131,24 @@ instacart %>% distinct(aisle, product_name, .keep_all = TRUE) %>%
   geom_density()
 ```
 
+```{r items ordered in each aisle plot}
+instacart %>% distinct(aisle, product_name, .keep_all = TRUE) %>%
+  group_by(aisle, department) %>% 
+  summarise(number_items = n()) %>%
+  ggplot(aes(x = department, y = number_items)) +
+  geom_boxplot() +
+   labs(
+    title = "number of items ordered in each aisle by department",
+    x = "department",
+    y = "number of items"
+  ) + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
 *Make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”*
 
-```{r}
+```{r popular items table}
 instacart %>% 
   filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
   group_by(aisle, product_name) %>%
@@ -148,7 +163,7 @@ instacart %>%
 tried this code in the below chunck it didnt work
 mutate(order_dow = recode(order_dow, 0 = "Sunday", 1 = "Monday", 2 = "Tuesday", 3 = "Wednesday", 4 = "Thursday", 5 = "Friday", 6 = "Saturday"))
 
-```{r}
+```{r hour of day table}
 instacart %>% 
   filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%
   group_by(product_name, order_dow) %>% 
@@ -159,4 +174,47 @@ instacart %>%
 
 
 # Problem 3
+
+*description of dataset*
+
+The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and indicating the extent to which missing data is an issue. Then, do or answer the following (commenting on the results of each):
+
+*Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?*
+
+First I need to load this package for working with dates.
+```{r load package}
+library(lubridate) # need this package below for separating the date into multiple columns
+```
+
+This code tidys the data by making new columns for year, month, and day, and converting any variable expressed in tenths of a unit to whole units. 
+```{r tidy noaa data}
+noaa_data = ny_noaa %>%
+  mutate_at(vars(date), funs(year, month, day)) %>% # need the lubridate package for this line
+  mutate(prcp = prcp/10, tmax = as.numeric(tmax)/10, tmin = as.numeric(tmin)/10) # convert from tenths of mm and tench of degrees to whole units
+```
+
+For snowfall, what are the most commonly observed values? Why?
+```{r}
+noaa_data %>% 
+  count(snow) %>% 
+  arrange(desc(n))
+```
+The most commonly observed value is 0 because on most days it does not snow.
+
+*Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?*
+
+```{r}
+noaa_data %>% 
+  filter(month %in% c(1, 7)) %>% # keeps only data for months of Jan and July
+  group_by(id) %>% 
+  filter(!is.na(tmax)) %>% 
+  ggplot(aes(x = year, y = tmax, color = id)) +
+  geom_point() +
+  theme(legend.position = "none")
+  
+```
+
+
+*Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.*
+
 

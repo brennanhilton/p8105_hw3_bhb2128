@@ -199,13 +199,13 @@ instacart %>%
 | dog food care              | Standard Size Pet Waste bags                    |      25|
 | dog food care              | Organix Grain Free Chicken & Vegetable Dog Food |      24|
 
-*Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).*
+*Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).* tried this code in the below chunck it didnt work mutate(order\_dow = recode(order\_dow, 0 = "Sunday", 1 = "Monday", 2 = "Tuesday", 3 = "Wednesday", 4 = "Thursday", 5 = "Friday", 6 = "Saturday"))
 
 ``` r
 instacart %>% 
   filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%
   group_by(product_name, order_dow) %>% 
-  summarize(mean_hour = mean(order_hour_of_day)) %>% 
+  summarize(mean_hour = mean(order_hour_of_day)) %>%
   spread(key = order_dow, value = mean_hour) %>% 
   knitr::kable()
 ```
