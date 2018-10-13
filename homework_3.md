@@ -69,6 +69,11 @@ brfss %>%
   count(state) %>% 
     ggplot(aes(x = year, y = n, color = state)) +
   geom_line() +
+  labs(
+    title = "Distinct locations in each state",
+    x = "Year",
+    y = "Number of locations"
+  ) + 
   theme_bw()
 ```
 
@@ -118,8 +123,6 @@ brfss %>%
 Problem 2
 =========
 
-*Load data*
-
 Instacart is an online grocery shopping service. This instacart dataset contains 1384617 rows and 15 columns. The dataset contains one order from each of 131209 distinct users. Each row is a distinct product from one of these orders. The data set includes more information for each product, including the department and aisle it belongs to. As an example, the table below shows the products from just one order (order\_id = 1). From the table we can see that the first product is "Bulgarian Yogurt", which belongs to the "yogurt" aisle in the "dairy eggs" department.
 
 |  order\_id|  product\_id|  add\_to\_cart\_order|  reordered|  user\_id| eval\_set |  order\_number|  order\_dow|  order\_hour\_of\_day|  days\_since\_prior\_order| product\_name                                 |  aisle\_id|  department\_id| aisle                | department   |
@@ -168,27 +171,14 @@ instacart %>% distinct(aisle, product_name, .keep_all = TRUE) %>%
 ``` r
 instacart %>% distinct(aisle, product_name, .keep_all = TRUE) %>%
   group_by(aisle, department) %>% 
-  summarise(number_items = n()) %>% 
-  ggplot(aes(x =number_items, fill = department)) +
-  geom_density()
-```
-
-    ## Warning: Groups with fewer than two data points have been dropped.
-
-    ## Warning: Groups with fewer than two data points have been dropped.
-
-![](homework_3_files/figure-markdown_github/unnamed-chunk-2-1.png)
-
-``` r
-instacart %>% distinct(aisle, product_name, .keep_all = TRUE) %>%
-  group_by(aisle, department) %>% 
+  filter(!aisle %in% c("other", "missing")) %>% # removed other and missing because those aisles are un informative
   summarise(number_items = n()) %>%
   ggplot(aes(x = department, y = number_items)) +
   geom_boxplot() +
    labs(
-    title = "number of items ordered in each aisle by department",
-    x = "department",
-    y = "number of items"
+    title = "Number of items ordered in each aisle by department",
+    x = "Department",
+    y = "Number of items per aisle"
   ) + 
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
@@ -235,7 +225,7 @@ instacart %>%
 Problem 3
 =========
 
-*description of dataset* The National Oceanic and Atmospheric Association (NOAA) provides weather data. This dataset contains 2595176 rows and 7 columns. The data are for five variables measured from all weahter stations daily in New York state from January 1, 1981 through December 31, 2010. The variables are precipiation, snowfall, snow depth, maximum temperature, and minimum temperature. There is a lot of missing data, which is an issue for calculating descriptive statistics in r. Thus, missing values will often need to be filtered out.
+The National Oceanic and Atmospheric Association (NOAA) provides weather data. This dataset contains 2595176 rows and 7 columns. The data are for five variables measured from all weahter stations daily in New York state from January 1, 1981 through December 31, 2010. The variables are precipiation, snowfall, snow depth, maximum temperature, and minimum temperature. There is a lot of missing data, which is an issue for calculating descriptive statistics in r. Thus, missing values will often need to be filtered out.
 
 *Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?*
 
@@ -260,7 +250,7 @@ noaa_data = ny_noaa %>%
   mutate(prcp = prcp/10, tmax = as.numeric(tmax)/10, tmin = as.numeric(tmin)/10) # convert from tenths of mm and tench of degrees to whole units
 ```
 
-For snowfall, what are the most commonly observed values? Why?
+*For snowfall, what are the most commonly observed values? Why?*
 
 ``` r
 noaa_data %>% 
@@ -287,38 +277,47 @@ The most commonly observed value is 0 because on most days it does not snow.
 
 *Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?*
 
-this wont work mutate(month = recode(month, 1 = "January", 7 = "July")) %&gt;%
-
 ``` r
 noaa_data %>% 
   filter(month %in% c(1, 7)) %>% # keeps only data for months of Jan and July
+  mutate(month = as.factor(month)) %>% # needed to convert to factor for the next line to work
+  mutate(month = recode(month, "1" = "January", "7" = "July")) %>%
   group_by(month, id, year) %>% 
   filter(!is.na(tmax)) %>%
   summarize(mean_tmax = mean(tmax)) %>%
   ggplot(aes(x = year, y = mean_tmax, color = id)) +
   geom_line() +
   facet_grid(~month) +
-  theme(legend.position = "none")
+  labs(
+    title = "Maximum temperature plot",
+    x = "Year",
+    y = "Mean maximum temperature"
+  ) + 
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(panel.spacing = unit(2, "lines")) # adds space between faceted plots
 ```
 
-![](homework_3_files/figure-markdown_github/unnamed-chunk-4-1.png)
+![](homework_3_files/figure-markdown_github/jan%20and%20july%20temp%20plot-1.png)
 
 *Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.*
 
 ``` r
 library(hexbin) # geom_hex did not work until I loaded this package
-library(patchwork)
+library(patchwork) # this package lets me make the two panel plot with the last line of code in this chunk
 tmax_tmin = noaa_data %>% 
   filter(!is.na(tmax),
          !is.na(tmin)) %>%
   ggplot(aes(x = tmin, y = tmax)) +
   geom_hex() +
   labs(
-    title = "Temperature plot",
+    title = "Daily temperatures at all NY state weather stations",
     x = "Minimum daily temperature (C)",
     y = "Maxiumum daily temperature (C)"
   ) + 
-  theme_bw()
+  theme_bw() +
+  guides(fill=guide_legend(title="Count from\nJanuary 1, 1981\nthrough\nDecember 31, 2010"))
+ 
 
 snow_plot = noaa_data %>% 
   filter(snow > 0,
@@ -337,21 +336,4 @@ snow_plot = noaa_data %>%
 tmax_tmin / snow_plot
 ```
 
-![](homework_3_files/figure-markdown_github/plots-1.png)
-
-``` r
-snow_plot2 = noaa_data %>% 
-  filter(snow > 0,
-         snow < 100) %>% 
-  mutate(year = as.factor(year)) %>% 
-  ggplot(aes(x = snow, fill = year)) +
-  geom_histogram(position = "dodge") +
-  labs(
-    title = "snowfall distribution by year",
-    x = "snowfall (mm)",
-    y = "count"
-  ) + 
-  theme_bw() +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-```
+![](homework_3_files/figure-markdown_github/temp%20and%20snow%20plots%20plots-1.png)
