@@ -250,6 +250,7 @@ tmax_tmin = noaa_data %>%
  
 
 snow_plot = noaa_data %>% 
+  mutate(snow = snow/10) %>% #converting from mm to cm because between 0-100 mm does not encompass enough of the data to be an informative graph
   filter(snow > 0,
          snow < 100) %>% 
   mutate(year = as.factor(year)) %>% 
@@ -258,7 +259,7 @@ snow_plot = noaa_data %>%
   labs(
     title = "Snowfall distribution by year",
     x = "Year",
-    y = "Snowfall (mm)"
+    y = "Snowfall (cm)"
   ) + 
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))

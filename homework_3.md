@@ -16,14 +16,14 @@ Load packages
 library(tidyverse)
 ```
 
-    ## -- Attaching packages ------------------------------------------------------------------------- tidyverse 1.2.1 --
+    ## -- Attaching packages ------------------------------------------------------------ tidyverse 1.2.1 --
 
     ## v ggplot2 3.0.0     v purrr   0.2.5
     ## v tibble  1.4.2     v dplyr   0.7.6
     ## v tidyr   0.8.1     v stringr 1.3.1
     ## v readr   1.1.1     v forcats 0.3.0
 
-    ## -- Conflicts ---------------------------------------------------------------------------- tidyverse_conflicts() --
+    ## -- Conflicts --------------------------------------------------------------- tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
 
@@ -320,6 +320,7 @@ tmax_tmin = noaa_data %>%
  
 
 snow_plot = noaa_data %>% 
+  mutate(snow = snow/10) %>% #converting from mm to cm because between 0-100 mm does not encompass enough of the data to be an informative graph
   filter(snow > 0,
          snow < 100) %>% 
   mutate(year = as.factor(year)) %>% 
@@ -328,7 +329,7 @@ snow_plot = noaa_data %>%
   labs(
     title = "Snowfall distribution by year",
     x = "Year",
-    y = "Snowfall (mm)"
+    y = "Snowfall (cm)"
   ) + 
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
